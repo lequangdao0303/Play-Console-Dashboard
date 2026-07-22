@@ -84,6 +84,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun deleteApp(packageName: String) {
+        viewModelScope.launch {
+            repository.deleteApp(packageName)
+        }
+    }
+
     fun verifyAndAddStoreCredential(storeId: String, storeName: String, credentialJson: String, onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
             val result = repository.verifyAndSaveCredential(storeId, storeName, credentialJson)

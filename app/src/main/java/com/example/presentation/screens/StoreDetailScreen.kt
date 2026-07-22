@@ -252,9 +252,12 @@ fun StoreDetailScreen(
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {
                                     Text(app.displayName, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                                    Text("Đã phát hành lên Production", color = TextSecondary, fontSize = 12.sp)
+                                    Text(app.packageName, color = TextSecondary, fontSize = 12.sp)
                                 }
                                 StatusBadge(status = app.status)
+                                IconButton(onClick = { viewModel.deleteApp(app.packageName) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Xóa App", tint = StatusRejected)
+                                }
                             }
                         }
                     }

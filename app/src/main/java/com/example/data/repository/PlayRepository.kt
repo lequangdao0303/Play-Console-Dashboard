@@ -348,6 +348,11 @@ class PlayRepository(
         appDao.upsertApp(appEntity)
     }
 
+    suspend fun deleteApp(packageName: String) {
+        appDao.deleteByPackageName(packageName)
+        trackReleaseDao.deleteByPackageName(packageName)
+    }
+
     suspend fun verifyAndSaveCredential(storeId: String, storeName: String, credentialJson: String): Result<String> {
         Log.d("REPO_SYNC", "Verifying credentials for store: $storeId")
         val credential = try {
