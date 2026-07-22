@@ -120,6 +120,28 @@ fun AddStoreScreen(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.clickable { step = 2 }
                     )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Card(
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = PrimaryBlue.copy(alpha = 0.1f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text("Hướng dẫn định dạng JSON:", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("• Single Store: Dán trực tiếp nội dung file Service Account JSON (Google Cloud).", color = TextSecondary, fontSize = 12.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("• Multiple Stores (Catalog): Dùng định dạng sau:", color = TextSecondary, fontSize = 12.sp)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                "{\n  \"stores\": [\n    {\n      \"storeId\": \"store_vn\",\n      \"storeName\": \"VN Store\",\n      \"serviceAccountKey\": { /* Dán service account json */ }\n    }\n  ]\n}",
+                                color = TextPrimary,
+                                fontSize = 11.sp,
+                                modifier = Modifier.background(DarkBackground, RoundedCornerShape(8.dp)).padding(8.dp).fillMaxWidth()
+                            )
+                        }
+                    }
                 }
 
                 2 -> {

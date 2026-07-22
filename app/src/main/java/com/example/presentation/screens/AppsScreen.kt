@@ -18,9 +18,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.domain.model.AppItem
+import com.example.domain.model.AppStatus
 import com.example.presentation.MainViewModel
 import com.example.presentation.components.StatusBadge
 import com.example.ui.theme.*
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,10 +33,14 @@ fun AppsScreen(
 ) {
     val apps by viewModel.apps.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    var selectedStatusFilter by remember { mutableStateOf<AppStatus?>(null) }
+    var showFilterMenu by remember { mutableStateOf(false) }
 
     val filteredApps = apps.filter {
-        it.displayName.contains(searchQuery, ignoreCase = true) ||
-        it.packageName.contains(searchQuery, ignoreCase = true)
+        val matchesQuery = it.displayName.contains(searchQuery, ignoreCase = true) ||
+                           it.packageName.contains(searchQuery, ignoreCase = true)
+        val matchesStatus = selectedStatusFilter == null || it.status == selectedStatusFilter
+        matchesQuery && matchesStatus
     }
 
     Scaffold(
@@ -63,8 +70,7 @@ fun AppsScreen(
                     placeholder = { Text("Tìm kiếm ứng dụng", color = TextSecondary, fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                     singleLine = true,
-            
-        shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = CardSurface,
                         unfocusedContainerColor = CardSurface,
@@ -75,17 +81,40 @@ fun AppsScreen(
                     ),
                     modifier = Modifier.weight(1f)
                 )
-
                 Spacer(modifier = Modifier.width(8.dp))
-
-                IconButton(
-                    onClick = { },
-                    modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(CardSurface)
-                ) {
-                    Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = TextPrimary)
+                
+                Box {
+                    IconButton(
+                        onClick = { showFilterMenu = true },
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (selectedStatusFilter != null) PrimaryBlue.copy(alpha = 0.2f) else CardSurface)
+                    ) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Filter", tint = if (selectedStatusFilter != null) PrimaryBlue else TextPrimary)
+                    }
+                    DropdownMenu(
+                        expanded = showFilterMenu,
+                        onDismissRequest = { showFilterMenu = false },
+                        modifier = Modifier.background(CardSurface)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Tất cả trạng thái", color = TextPrimary) },
+                            onClick = { 
+                                selectedStatusFilter = null
+                                showFilterMenu = false 
+                            }
+                        )
+                        AppStatus.entries.forEach { status ->
+                            DropdownMenuItem(
+                                text = { Text(status.displayName, color = TextPrimary) },
+                                onClick = { 
+                                    selectedStatusFilter = status
+                                    showFilterMenu = false 
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -97,7 +126,6 @@ fun AppsScreen(
                 items(filteredApps) { app ->
                     AppItemCard(app = app, onClick = { onNavigateToAppDetail(app.packageName) })
                 }
-
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
         }
@@ -107,7 +135,6 @@ fun AppsScreen(
 @Composable
 fun AppItemCard(app: AppItem, onClick: () -> Unit) {
     Card(
-
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
@@ -129,16 +156,23 @@ fun AppItemCard(app: AppItem, onClick: () -> Unit) {
                     .background(PrimaryBlue.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Smartphone,
-                    contentDescription = null,
-                    tint = PrimaryBlue,
-                    modifier = Modifier.size(24.dp)
-                )
+                if (app.iconUrl != null) {
+                    AsyncImage(
+                        model = app.iconUrl,
+                        contentDescription = "App Icon",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Smartphone,
+                        contentDescription = null,
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
-
             Spacer(modifier = Modifier.width(12.dp))
-
             Column(modifier = Modifier.weight(1f)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -149,23 +183,21 @@ fun AppItemCard(app: AppItem, onClick: () -> Unit) {
                         text = app.displayName,
                         color = TextPrimary,
                         fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.weight(1f)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                     StatusBadge(status = app.status)
                 }
-
                 Spacer(modifier = Modifier.height(2.dp))
-
                 Text(
                     text = app.packageName,
                     color = TextSecondary,
                     fontSize = 12.sp
                 )
-
                 Spacer(modifier = Modifier.height(4.dp))
-
                 Text(
-                    text = "${app.mainTrack}",
+                    text = "Trên ${app.mainTrack}",
                     color = TextTertiary,
                     fontSize = 11.sp
                 )

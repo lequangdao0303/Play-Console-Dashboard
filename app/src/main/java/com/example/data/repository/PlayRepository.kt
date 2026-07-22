@@ -46,7 +46,7 @@ class PlayRepository(
                     hasCredential = secureCredentialStore.hasCredential(storeEntity.id),
                     connectionStatus = try { StoreConnectionStatus.valueOf(storeEntity.connectionStatus) } catch (e: Exception) { StoreConnectionStatus.CONNECTED },
                     appCount = storeApps.size,
-                    releaseCount = storeApps.sumOf { it.latestVersionCode ?: 1 },
+                    releaseCount = storeApps.count { it.latestVersionCode != null },
                     liveCount = liveCount,
                     alertCount = storeAlerts.size,
                     lastSyncAt = storeEntity.lastSyncAt,
@@ -231,38 +231,51 @@ class PlayRepository(
      */
     fun getDashboardSummaryFlow(): Flow<DashboardSummary> {
         return combine(storeDao.getAllStoresFlow(), appDao.getAllAppsFlow(), alertDao.getAllAlertsFlow()) { stores, apps, alerts ->
+            val manualRejectedAppIds = alerts.filter { it.isManual && it.type == AlertType.REJECTED.name && !it.isRead }.mapNotNull { it.appId }.toSet()
+            
             val totalStores = stores.size
             val totalApps = apps.size
-            val liveApps = apps.count { it.status == AppStatus.LIVE.name }
-            val inReviewApps = apps.count { it.status == AppStatus.IN_REVIEW.name }
-            val draftApps = apps.count { it.status == AppStatus.DRAFT.name }
-            val actionRequiredApps = apps.count { it.status == AppStatus.ACTION_REQUIRED.name }
-            val closedApps = apps.count { it.status == AppStatus.CLOSED.name }
+            
+            val mappedApps = apps.map { app ->
+                val status = if (manualRejectedAppIds.contains(app.id)) AppStatus.REJECTED else try { AppStatus.valueOf(app.status) } catch (e: Exception) { AppStatus.LIVE }
+                app.copy(status = status.name)
+            }
+            
+            val liveApps = mappedApps.count { it.status == AppStatus.LIVE.name }
+            val inReviewApps = mappedApps.count { it.status == AppStatus.IN_REVIEW.name }
+            val draftApps = mappedApps.count { it.status == AppStatus.DRAFT.name }
+            val actionRequiredApps = mappedApps.count { it.status == AppStatus.ACTION_REQUIRED.name }
+            val closedApps = mappedApps.count { it.status == AppStatus.CLOSED.name }
+            val rejectedApps = mappedApps.count { it.status == AppStatus.REJECTED.name }
 
-            val manualRejectedCount = alerts.filter { it.isManual && it.type == AlertType.REJECTED.name && !it.isRead }.mapNotNull { it.appId }.distinct().size
-
-            val totalReleases = apps.sumOf { it.latestVersionCode ?: 1 }
+            val totalReleases = mappedApps.sumOf { it.latestVersionCode ?: 1 }
             val unreadAlerts = alerts.count { !it.isRead }
 
-            val recentActivities = listOf(
-                RecentActivity("1", "Camera Pro", "com.company.camera", "Đã phát hành lên Production", System.currentTimeMillis() - 120000, AppStatus.LIVE),
-                RecentActivity("2", "AI Chat", "com.company.chat", "Đang trong quá trình review", System.currentTimeMillis() - 900000, AppStatus.IN_REVIEW),
-                RecentActivity("3", "Photo Editor", "com.company.photo", "Bản nháp đã được tạo", System.currentTimeMillis() - 86400000, AppStatus.DRAFT)
-            )
+            val recentActivities = mappedApps.sortedByDescending { it.lastUpdatedTime }.take(5).map { app ->
+                val status = try { AppStatus.valueOf(app.status) } catch (e: Exception) { AppStatus.LIVE }
+                RecentActivity(
+                    id = app.id,
+                    appName = app.displayName,
+                    packageName = app.packageName,
+                    actionText = "Đồng bộ gần đây",
+                    timestamp = app.lastUpdatedTime,
+                    status = status
+                )
+            }
 
             DashboardSummary(
                 totalStores = totalStores,
-                storeIncrease = 2,
+                storeIncrease = 0,
                 totalApps = totalApps,
-                appIncrease = 6,
+                appIncrease = 0,
                 totalReleases = totalReleases,
-                releaseIncrease = 2,
+                releaseIncrease = 0,
                 alertCount = unreadAlerts,
-                alertIncrease = 1,
+                alertIncrease = 0,
                 liveCount = liveApps,
                 inReviewCount = inReviewApps,
                 draftCount = draftApps,
-                rejectedCount = manualRejectedCount,
+                rejectedCount = rejectedApps,
                 actionRequiredCount = actionRequiredApps,
                 closedCount = closedApps,
                 recentActivities = recentActivities
@@ -289,14 +302,21 @@ class PlayRepository(
             }
 
             for (storeDto: StoreJsonDto in storeList) {
+                var hasCred = secureCredentialStore.hasCredential(storeDto.storeId)
+                if (storeDto.serviceAccountKey != null) {
+                    val keyJson = gson.toJson(storeDto.serviceAccountKey)
+                    secureCredentialStore.saveCredential(storeDto.storeId, keyJson)
+                    hasCred = true
+                }
+
                 val existingStore = storeDao.getStoreById(storeDto.storeId)
                 val storeEntity = StoreEntity(
                     id = storeDto.storeId,
                     name = storeDto.storeName,
                     country = storeDto.country ?: "VN",
-                    serviceAccountEmail = storeDto.serviceAccountEmail,
-                    hasCredential = secureCredentialStore.hasCredential(storeDto.storeId),
-                    connectionStatus = existingStore?.connectionStatus ?: StoreConnectionStatus.CONNECTED.name,
+                    serviceAccountEmail = storeDto.serviceAccountEmail ?: storeDto.serviceAccountKey?.clientEmail,
+                    hasCredential = hasCred,
+                    connectionStatus = existingStore?.connectionStatus ?: StoreConnectionStatus.UNCONFIGURED.name,
                     lastSyncAt = System.currentTimeMillis(),
                     autoSyncEnabled = true,
                     syncIntervalMinutes = 15

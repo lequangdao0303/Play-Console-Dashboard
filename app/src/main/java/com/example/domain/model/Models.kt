@@ -142,6 +142,7 @@ data class StoreJsonDto(
     val storeName: String,
     val country: String? = "VN",
     val serviceAccountEmail: String? = null,
+    val serviceAccountKey: ServiceAccountCredential? = null,
     val apps: List<AppJsonDto> = emptyList()
 )
 
