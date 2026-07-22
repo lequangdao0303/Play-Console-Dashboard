@@ -77,9 +77,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun verifyAndAddStoreCredential(storeId: String, credentialJson: String, onResult: (Boolean, String) -> Unit) {
+    fun verifyAndAddStoreCredential(storeId: String, storeName: String, credentialJson: String, onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
-            val result = repository.verifyAndSaveCredential(storeId, credentialJson)
+            val result = repository.verifyAndSaveCredential(storeId, storeName, credentialJson)
             result.onSuccess { msg ->
                 onResult(true, msg)
             }.onFailure { err ->

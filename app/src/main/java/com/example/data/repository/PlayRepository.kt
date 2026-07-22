@@ -332,7 +332,7 @@ class PlayRepository(
     /**
      * Validates and securely stores Service Account Credentials for a specific store.
      */
-    suspend fun verifyAndSaveCredential(storeId: String, credentialJson: String): Result<String> {
+    suspend fun verifyAndSaveCredential(storeId: String, storeName: String, credentialJson: String): Result<String> {
         Log.d("REPO_SYNC", "Verifying credentials for store: $storeId")
         val credential = try {
             gson.fromJson(credentialJson, ServiceAccountCredential::class.java)
@@ -356,6 +356,18 @@ class PlayRepository(
                 val store = storeDao.getStoreById(storeId)
                 if (store != null) {
                     storeDao.upsertStore(store.copy(hasCredential = true, connectionStatus = StoreConnectionStatus.CONNECTED.name))
+                } else {
+                    storeDao.upsertStore(StoreEntity(
+                        id = storeId,
+                        name = storeName.ifBlank { "New Store" },
+                        country = null,
+                        serviceAccountEmail = credential.clientEmail,
+                        hasCredential = true,
+                        connectionStatus = StoreConnectionStatus.CONNECTED.name,
+                        lastSyncAt = null,
+                        autoSyncEnabled = false,
+                        syncIntervalMinutes = 60
+                    ))
                 }
                 Result.success("Xác thực và lưu Service Account Key thành công!")
             } else {

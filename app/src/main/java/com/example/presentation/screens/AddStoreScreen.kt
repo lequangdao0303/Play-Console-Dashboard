@@ -166,7 +166,7 @@ fun AddStoreScreen(
                             errorMessage = null
 
                             if (jsonText.contains("service_account")) {
-                                viewModel.verifyAndAddStoreCredential(storeId, jsonText) { success, msg ->
+                                viewModel.verifyAndAddStoreCredential(storeId, storeName, jsonText) { success, msg ->
                                     isLoading = false
                                     if (success) {
                                         successMessage = msg
