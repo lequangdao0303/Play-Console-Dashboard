@@ -77,6 +77,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun addApp(storeId: String, packageName: String, displayName: String) {
+        viewModelScope.launch {
+            repository.addApp(storeId, packageName, displayName)
+            repository.syncStoreWithGoogle(storeId) // Trigger sync after adding
+        }
+    }
+
     fun verifyAndAddStoreCredential(storeId: String, storeName: String, credentialJson: String, onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
             val result = repository.verifyAndSaveCredential(storeId, storeName, credentialJson)

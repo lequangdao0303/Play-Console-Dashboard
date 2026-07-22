@@ -332,6 +332,22 @@ class PlayRepository(
     /**
      * Validates and securely stores Service Account Credentials for a specific store.
      */
+    suspend fun addApp(storeId: String, packageName: String, displayName: String) {
+        val appEntity = com.example.data.local.entity.AppEntity(
+            id = packageName,
+            storeId = storeId,
+            packageName = packageName,
+            displayName = displayName,
+            defaultTrackNames = "production",
+            status = com.example.domain.model.AppStatus.LIVE.name,
+            latestVersionName = "1.0.0",
+            latestVersionCode = 1,
+            userFraction = 1.0f,
+            lastUpdatedTime = System.currentTimeMillis()
+        )
+        appDao.upsertApp(appEntity)
+    }
+
     suspend fun verifyAndSaveCredential(storeId: String, storeName: String, credentialJson: String): Result<String> {
         Log.d("REPO_SYNC", "Verifying credentials for store: $storeId")
         val credential = try {

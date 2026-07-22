@@ -40,7 +40,57 @@ fun StoreDetailScreen(
     val store = stores.find { it.id == storeId } ?: stores.firstOrNull()
 
     var selectedTabIndex by remember { mutableIntStateOf(0) }
+    var showAddAppDialog by remember { mutableStateOf(false) }
+    
     val storeApps = allApps.filter { it.storeId == (store?.id ?: storeId) }
+
+    if (showAddAppDialog) {
+        var packageName by remember { mutableStateOf("") }
+        var displayName by remember { mutableStateOf("") }
+        AlertDialog(
+            onDismissRequest = { showAddAppDialog = false },
+            title = { Text("Thêm Ứng dụng") },
+            text = {
+                Column {
+                    Text("Lưu ý: Bạn phải thêm chính xác Package Name để hệ thống đồng bộ dữ liệu.", fontSize = 13.sp, color = TextSecondary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = packageName,
+                        onValueChange = { packageName = it },
+                        label = { Text("Package Name") },
+                        placeholder = { Text("com.example.app") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = displayName,
+                        onValueChange = { displayName = it },
+                        label = { Text("Tên hiển thị") },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary)
+                    )
+                }
+            },
+            containerColor = CardSurface,
+            titleContentColor = TextPrimary,
+            confirmButton = {
+                TextButton(onClick = {
+                    if (packageName.isNotBlank()) {
+                        viewModel.addApp(storeId, packageName.trim(), displayName.trim().ifBlank { packageName.trim() })
+                        showAddAppDialog = false
+                    }
+                }) {
+                    Text("Thêm", color = PrimaryBlue)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAddAppDialog = false }) {
+                    Text("Hủy", color = TextSecondary)
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -58,6 +108,17 @@ fun StoreDetailScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
+        },
+        floatingActionButton = {
+            if (selectedTabIndex == 0) {
+                FloatingActionButton(
+                    onClick = { showAddAppDialog = true },
+                    containerColor = PrimaryBlue,
+                    contentColor = DarkBackground
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Thêm App")
+                }
+            }
         },
         contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
