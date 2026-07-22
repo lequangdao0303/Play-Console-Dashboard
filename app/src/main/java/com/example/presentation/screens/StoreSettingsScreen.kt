@@ -46,6 +46,7 @@ fun StoreSettingsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         if (store == null) {
@@ -63,8 +64,10 @@ fun StoreSettingsScreen(
                 // Store Info Header
                 item {
                     Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                
+        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
@@ -92,8 +95,10 @@ fun StoreSettingsScreen(
                 // Information Section
                 item {
                     Card(
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                
+        shape = RoundedCornerShape(14.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -112,8 +117,10 @@ fun StoreSettingsScreen(
                 // Data Sync Settings
                 item {
                     Card(
-                        shape = RoundedCornerShape(14.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                
+        shape = RoundedCornerShape(14.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
@@ -152,7 +159,8 @@ fun StoreSettingsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(44.dp),
-                                shape = RoundedCornerShape(10.dp)
+                        
+        shape = RoundedCornerShape(10.dp)
                             ) {
                                 Icon(Icons.Default.Sync, contentDescription = null, tint = DarkBackground, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(6.dp))

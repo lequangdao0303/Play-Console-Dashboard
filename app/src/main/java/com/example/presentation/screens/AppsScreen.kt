@@ -43,6 +43,7 @@ fun AppsScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -62,7 +63,8 @@ fun AppsScreen(
                     placeholder = { Text("Tìm kiếm ứng dụng", color = TextSecondary, fontSize = 14.sp) },
                     leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
+            
+        shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedContainerColor = CardSurface,
                         unfocusedContainerColor = CardSurface,
@@ -105,7 +107,9 @@ fun AppsScreen(
 @Composable
 fun AppItemCard(app: AppItem, onClick: () -> Unit) {
     Card(
+
         shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = Modifier
             .fillMaxWidth()

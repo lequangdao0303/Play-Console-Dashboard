@@ -60,12 +60,20 @@ fun AppNavGraph(viewModel: MainViewModel) {
             startDestination = Screen.Dashboard.route,
             modifier = Modifier.padding(innerPadding)
         ) {
+            val navigateToTopLevel = { route: String ->
+                navController.navigate(route) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+
             // Screen 1: Dashboard
             composable(Screen.Dashboard.route) {
                 DashboardScreen(
                     viewModel = viewModel,
-                    onNavigateToStores = { navController.navigate(Screen.Stores.route) },
-                    onNavigateToApps = { navController.navigate(Screen.Apps.route) },
+                    onNavigateToStores = { navigateToTopLevel(Screen.Stores.route) },
+                    onNavigateToApps = { navigateToTopLevel(Screen.Apps.route) },
                     onNavigateToAlerts = { navController.navigate(Screen.Alerts.route) },
                     onNavigateToStatistics = { navController.navigate(Screen.Statistics.route) },
                     onNavigateToAppDetail = { pkg -> navController.navigate(Screen.AppDetail.createRoute(pkg)) }
@@ -194,7 +202,7 @@ fun AppNavGraph(viewModel: MainViewModel) {
             composable(Screen.Settings.route) {
                 SettingsScreen(
                     viewModel = viewModel,
-                    onNavigateToStores = { navController.navigate(Screen.Stores.route) },
+                    onNavigateToStores = { navigateToTopLevel(Screen.Stores.route) },
                     onNavigateToAddStore = { navController.navigate(Screen.AddStore.route) }
                 )
             }

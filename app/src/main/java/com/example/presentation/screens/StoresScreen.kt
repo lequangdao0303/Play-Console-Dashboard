@@ -61,6 +61,7 @@ fun StoresScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -76,7 +77,8 @@ fun StoresScreen(
                 placeholder = { Text("Tìm kiếm Store", color = TextSecondary, fontSize = 14.sp) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp),
+        
+        shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = CardSurface,
                     unfocusedContainerColor = CardSurface,
@@ -109,7 +111,9 @@ fun StoresScreen(
 @Composable
 fun StoreItemCard(store: Store, onClick: () -> Unit) {
     Card(
+
         shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = Modifier
             .fillMaxWidth()

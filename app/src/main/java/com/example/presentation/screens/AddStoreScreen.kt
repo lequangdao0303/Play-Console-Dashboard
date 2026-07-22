@@ -48,6 +48,7 @@ fun AddStoreScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -78,8 +79,10 @@ fun AddStoreScreen(
                 1 -> {
                     // Upload File Zone + Paste Link
                     Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                
+        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(220.dp)
@@ -99,7 +102,8 @@ fun AddStoreScreen(
                             Button(
                                 onClick = { step = 2 },
                                 colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                                shape = RoundedCornerShape(10.dp)
+                        
+        shape = RoundedCornerShape(10.dp)
                             ) {
                                 Text("Chọn file JSON", color = DarkBackground, fontWeight = FontWeight.Bold)
                             }
@@ -183,7 +187,8 @@ fun AddStoreScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
+                
+        shape = RoundedCornerShape(12.dp)
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(color = DarkBackground, modifier = Modifier.size(24.dp))
@@ -214,7 +219,8 @@ fun AddStoreScreen(
                                 onSuccess()
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                            shape = RoundedCornerShape(12.dp),
+                    
+        shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)

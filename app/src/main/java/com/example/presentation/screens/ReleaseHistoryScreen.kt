@@ -50,6 +50,7 @@ fun ReleaseHistoryScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -65,7 +66,8 @@ fun ReleaseHistoryScreen(
             ) {
                 OutlinedButton(
                     onClick = { },
-                    shape = RoundedCornerShape(10.dp),
+            
+        shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -75,7 +77,8 @@ fun ReleaseHistoryScreen(
 
                 OutlinedButton(
                     onClick = { },
-                    shape = RoundedCornerShape(10.dp),
+            
+        shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
                     modifier = Modifier.weight(1f)
                 ) {
@@ -91,8 +94,10 @@ fun ReleaseHistoryScreen(
             ) {
                 items(historyItems) { item ->
                     Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                
+        shape = RoundedCornerShape(12.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onNavigateToReleaseDetail(item.packageName, item.trackName, item.versionCode) }

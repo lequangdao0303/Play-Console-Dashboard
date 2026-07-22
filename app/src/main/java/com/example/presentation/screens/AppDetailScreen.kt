@@ -52,6 +52,7 @@ fun AppDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         if (appDetailState == null) {
@@ -70,8 +71,10 @@ fun AppDetailScreen(
             ) {
                 // Header App Info
                 Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardSurface),
+            
+        shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -116,7 +119,7 @@ fun AppDetailScreen(
                 // Tabs
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
-                    containerColor = DarkBackground,
+        containerColor = DarkBackground,
                     contentColor = PrimaryBlue,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
@@ -173,7 +176,9 @@ private fun TrackHeaderSection(
     onReleaseClick: (TrackRelease) -> Unit
 ) {
     Card(
+
         shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = Modifier.fillMaxWidth()
     ) {

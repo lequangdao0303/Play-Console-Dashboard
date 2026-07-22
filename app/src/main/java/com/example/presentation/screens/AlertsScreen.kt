@@ -68,6 +68,7 @@ fun AlertsScreen(
                 Icon(Icons.Default.Add, contentDescription = "Tạo cảnh báo thủ công")
             }
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -79,7 +80,7 @@ fun AlertsScreen(
             // Tabs
             TabRow(
                 selectedTabIndex = selectedTab,
-                containerColor = DarkBackground,
+        containerColor = DarkBackground,
                 contentColor = PrimaryBlue,
                 indicator = { tabPositions ->
                     TabRowDefaults.SecondaryIndicator(
@@ -138,7 +139,9 @@ private fun AlertCardItem(
     }
 
     Card(
+
         shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = Modifier
             .fillMaxWidth()
@@ -227,7 +230,8 @@ private fun AddManualAlertBottomSheet(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                shape = RoundedCornerShape(12.dp)
+        
+        shape = RoundedCornerShape(12.dp)
             ) {
                 Text("Lưu cảnh báo", color = DarkBackground, fontWeight = FontWeight.Bold)
             }

@@ -107,6 +107,7 @@ fun DashboardScreenContent(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         LazyColumn(
@@ -177,8 +178,10 @@ fun DashboardScreenContent(
             // Donut Chart & Status Breakdown
             item {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardSurface),
+            
+        shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
@@ -292,7 +295,9 @@ private fun MetricCard(
     modifier: Modifier = Modifier
 ) {
     Card(
+
         shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = modifier
     ) {
@@ -400,7 +405,9 @@ private fun DonutChart(summary: DashboardSummary) {
 @Composable
 private fun RecentActivityCard(activity: RecentActivity, onClick: () -> Unit) {
     Card(
+
         shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = Modifier
             .fillMaxWidth()

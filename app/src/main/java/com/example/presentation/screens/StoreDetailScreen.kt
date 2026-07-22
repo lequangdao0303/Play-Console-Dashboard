@@ -59,6 +59,7 @@ fun StoreDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
+        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         Column(
@@ -70,8 +71,10 @@ fun StoreDetailScreen(
             // Header Info Card
             if (store != null) {
                 Card(
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = CardSurface),
+            
+        shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -108,7 +111,7 @@ fun StoreDetailScreen(
                 // Tabs: "Tổng quan" / "Cài đặt"
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
-                    containerColor = DarkBackground,
+        containerColor = DarkBackground,
                     contentColor = PrimaryBlue,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
@@ -163,8 +166,10 @@ fun StoreDetailScreen(
                 ) {
                     items(storeApps) { app ->
                         Card(
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = CardSurface),
+                    
+        shape = RoundedCornerShape(12.dp),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onNavigateToAppDetail(app.packageName) }
@@ -200,7 +205,9 @@ fun StoreDetailScreen(
 @Composable
 private fun MiniStatCard(title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, modifier: Modifier = Modifier) {
     Card(
+
         shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
         modifier = modifier
     ) {
