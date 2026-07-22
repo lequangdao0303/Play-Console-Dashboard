@@ -135,7 +135,7 @@ fun AddStoreScreen(
                             Text("• Multiple Stores (Catalog): Dùng định dạng sau:", color = TextSecondary, fontSize = 12.sp)
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                "{\n  \"stores\": [\n    {\n      \"storeId\": \"store_vn\",\n      \"storeName\": \"VN Store\",\n      \"serviceAccountKey\": { /* Dán service account json */ }\n    }\n  ]\n}",
+                                "{\n  \"stores\": [\n    {\n      \"storeId\": \"store_vn\",\n      \"storeName\": \"VN Store\",\n      \"serviceAccountKey\": { /* Dán service account json vào đây */ },\n      \"apps\": [\n        {\n          \"packageName\": \"com.example.app\",\n          \"displayName\": \"My App\"\n        }\n      ]\n    }\n  ]\n}",
                                 color = TextPrimary,
                                 fontSize = 11.sp,
                                 modifier = Modifier.background(DarkBackground, RoundedCornerShape(8.dp)).padding(8.dp).fillMaxWidth()
