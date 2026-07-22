@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +26,7 @@ import com.example.presentation.components.StoreStatusPill
 import com.example.ui.theme.*
 import coil.compose.AsyncImage
 import androidx.compose.ui.layout.ContentScale
+import com.example.utils.DateUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +41,6 @@ fun StoreDetailScreen(
     val allApps by viewModel.apps.collectAsState()
     val store = stores.find { it.id == storeId } ?: stores.firstOrNull()
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
     var showAddAppDialog by remember { mutableStateOf(false) }
     
     val storeApps = allApps.filter { it.storeId == (store?.id ?: storeId) }
@@ -49,6 +48,7 @@ fun StoreDetailScreen(
     if (showAddAppDialog) {
         var packageName by remember { mutableStateOf("") }
         var displayName by remember { mutableStateOf("") }
+
         AlertDialog(
             onDismissRequest = { showAddAppDialog = false },
             title = { Text("Thêm Ứng dụng") },
@@ -105,22 +105,23 @@ fun StoreDetailScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = { store?.let { viewModel.syncStore(it.id) } }) {
+                        Icon(Icons.Default.Refresh, contentDescription = "Đồng bộ", tint = PrimaryBlue)
+                    }
                     IconButton(onClick = { store?.let { onNavigateToStoreSettings(it.id) } }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Cài đặt", tint = TextPrimary)
+                        Icon(Icons.Default.Settings, contentDescription = "Cài đặt", tint = TextSecondary)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
         floatingActionButton = {
-            if (selectedTabIndex == 0) {
-                FloatingActionButton(
-                    onClick = { showAddAppDialog = true },
-                    containerColor = PrimaryBlue,
-                    contentColor = DarkBackground
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Thêm App")
-                }
+            FloatingActionButton(
+                onClick = { showAddAppDialog = true },
+                containerColor = PrimaryBlue,
+                contentColor = DarkBackground
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Thêm Ứng dụng")
             }
         },
         contentWindowInsets = WindowInsets(0.dp),
@@ -135,10 +136,9 @@ fun StoreDetailScreen(
             // Header Info Card
             if (store != null) {
                 Card(
-            
-        shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                    colors = CardDefaults.cardColors(containerColor = CardSurface),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -154,49 +154,16 @@ fun StoreDetailScreen(
                         ) {
                             Text(store.country ?: "VN", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                         }
-
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Text(store.name, color = TextPrimary, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                        Text(store.serviceAccountEmail ?: "vnstore@company.com", color = TextSecondary, fontSize = 12.sp)
-
+                        Text(store.serviceAccountEmail ?: "N/A", color = TextSecondary, fontSize = 12.sp)
                         Spacer(modifier = Modifier.height(8.dp))
-
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             StoreStatusPill(status = store.connectionStatus)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Đồng bộ lần cuối: 2 phút trước", color = TextTertiary, fontSize = 11.sp)
+                            Text("Đồng bộ: ${store.lastSyncAt?.let { DateUtils.formatDateTime(it) } ?: "Chưa đồng bộ"}", color = TextTertiary, fontSize = 11.sp)
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Tabs: "Tổng quan" / "Cài đặt"
-                TabRow(
-                    selectedTabIndex = selectedTabIndex,
-        containerColor = DarkBackground,
-                    contentColor = PrimaryBlue,
-                    indicator = { tabPositions ->
-                        TabRowDefaults.SecondaryIndicator(
-                            modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
-                            color = PrimaryBlue
-                        )
-                    }
-                ) {
-                    Tab(
-                        selected = selectedTabIndex == 0,
-                        onClick = { selectedTabIndex = 0 },
-                        text = { Text("Tổng quan", fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
-                    )
-                    Tab(
-                        selected = selectedTabIndex == 1,
-                        onClick = {
-                            selectedTabIndex = 1
-                            onNavigateToStoreSettings(store.id)
-                        },
-                        text = { Text("Cài đặt", fontSize = 14.sp, fontWeight = FontWeight.SemiBold) }
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -219,21 +186,20 @@ fun StoreDetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Hoạt động gần đây", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    Text("Xem tất cả", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                    Text("Danh sách Ứng dụng", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 }
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 80.dp) // Add padding so it scrolls past FAB
                 ) {
                     items(storeApps) { app ->
                         Card(
-                    
-        shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(12.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                            colors = CardDefaults.cardColors(containerColor = CardSurface),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable { onNavigateToAppDetail(app.packageName) }
@@ -281,7 +247,6 @@ fun StoreDetailScreen(
 @Composable
 private fun MiniStatCard(title: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, modifier: Modifier = Modifier) {
     Card(
-
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),

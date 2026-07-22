@@ -21,6 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.example.presentation.MainViewModel
 import com.example.ui.theme.*
 
+enum class AddStoreMode { SINGLE, MULTIPLE }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddStoreScreen(
@@ -28,7 +30,8 @@ fun AddStoreScreen(
     onBack: () -> Unit,
     onSuccess: () -> Unit
 ) {
-    var step by remember { mutableIntStateOf(1) } // 1: JSON Key, 2: Paste Text, 3: Verify & Complete
+    var step by remember { mutableIntStateOf(1) } // 1: Select & Input, 2: Success
+    var mode by remember { mutableStateOf(AddStoreMode.SINGLE) }
     var jsonText by remember { mutableStateOf("") }
     var storeName by remember { mutableStateOf("") }
     var storeId by remember { mutableStateOf("store_${System.currentTimeMillis() / 1000}") }
@@ -58,125 +61,82 @@ fun AddStoreScreen(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Stepper indicator
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                StepBadge(stepNumber = 1, label = "JSON Key", active = step == 1)
-                Divider(modifier = Modifier.width(32.dp), color = CardBorder)
-                StepBadge(stepNumber = 2, label = "Xác thực", active = step == 2)
-                Divider(modifier = Modifier.width(32.dp), color = CardBorder)
-                StepBadge(stepNumber = 3, label = "Hoàn tất", active = step == 3)
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             when (step) {
                 1 -> {
-                    // Upload File Zone + Paste Link
-                    Card(
-                
-        shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .border(1.dp, CardBorder, RoundedCornerShape(16.dp))
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(Icons.Default.CloudUpload, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(48.dp))
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Text("Kéo thả file vào đây hoặc", color = TextSecondary, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Button(
-                                onClick = { step = 2 },
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                        
-        shape = RoundedCornerShape(10.dp)
-                            ) {
-                                Text("Chọn file JSON", color = DarkBackground, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    }
-
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    // Link mandated in section 2.4
-                    Text(
-                        text = "Không có file? Dán nội dung JSON thủ công",
-                        color = PrimaryBlue,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable { step = 2 }
-                    )
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = PrimaryBlue.copy(alpha = 0.1f)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text("Hướng dẫn định dạng JSON:", color = PrimaryBlue, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text("• Single Store: Dán trực tiếp nội dung file Service Account JSON (Google Cloud).", color = TextSecondary, fontSize = 12.sp)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text("• Multiple Stores (Catalog): Dùng định dạng sau:", color = TextSecondary, fontSize = 12.sp)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                "{\n  \"stores\": [\n    {\n      \"storeId\": \"store_vn\",\n      \"storeName\": \"VN Store\",\n      \"serviceAccountKey\": { /* Dán service account json vào đây */ },\n      \"apps\": [\n        {\n          \"packageName\": \"com.example.app\",\n          \"displayName\": \"My App\"\n        }\n      ]\n    }\n  ]\n}",
-                                color = TextPrimary,
-                                fontSize = 11.sp,
-                                modifier = Modifier.background(DarkBackground, RoundedCornerShape(8.dp)).padding(8.dp).fillMaxWidth()
-                            )
-                        }
-                    }
-                }
-
-                2 -> {
-                    // Paste JSON Text Area
-                    Text("Nhập thông tin Store & JSON Key", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth())
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    OutlinedTextField(
-                        value = storeName,
-                        onValueChange = { storeName = it },
-                        label = { Text("Tên Store (ví dụ: VN Store)") },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary),
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    OutlinedTextField(
-                        value = jsonText,
-                        onValueChange = { jsonText = it },
-                        label = { Text("Nội dung Service Account JSON") },
-                        placeholder = { Text("Dán nội dung Service Account JSON hoặc Catalog JSON tại đây...") },
+                    // Option Selector
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp),
-                        colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary)
-                    )
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(CardSurface)
+                            .padding(4.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (mode == AddStoreMode.SINGLE) PrimaryBlue else Color.Transparent)
+                                .clickable { mode = AddStoreMode.SINGLE }
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Thêm 1 Store", color = if (mode == AddStoreMode.SINGLE) DarkBackground else TextSecondary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (mode == AddStoreMode.MULTIPLE) PrimaryBlue else Color.Transparent)
+                                .clickable { mode = AddStoreMode.MULTIPLE }
+                                .padding(vertical = 12.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Thêm bằng JSON", color = if (mode == AddStoreMode.MULTIPLE) DarkBackground else TextSecondary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    if (mode == AddStoreMode.SINGLE) {
+                        OutlinedTextField(
+                            value = storeName,
+                            onValueChange = { storeName = it },
+                            label = { Text("Tên Store (ví dụ: VN Store)") },
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        OutlinedTextField(
+                            value = jsonText,
+                            onValueChange = { jsonText = it },
+                            label = { Text("Nội dung Service Account Key (JSON)") },
+                            placeholder = { Text("Dán nội dung file service_account.json của bạn vào đây...") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary)
+                        )
+                    } else {
+                        OutlinedTextField(
+                            value = jsonText,
+                            onValueChange = { jsonText = it },
+                            label = { Text("Nội dung Catalog JSON") },
+                            placeholder = { Text("{\n  \"stores\": [\n    {\n      \"storeId\": \"store_vn\",\n      \"storeName\": \"Store Việt Nam\",\n      \"serviceAccountKey\": { ... }\n    }\n  ]\n}") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(250.dp),
+                            colors = OutlinedTextFieldDefaults.colors(focusedTextColor = TextPrimary, unfocusedTextColor = TextPrimary)
+                        )
+                    }
 
                     if (errorMessage != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(errorMessage!!, color = StatusRejected, fontSize = 12.sp)
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
                         onClick = {
@@ -184,50 +144,57 @@ fun AddStoreScreen(
                                 errorMessage = "Vui lòng nhập nội dung JSON."
                                 return@Button
                             }
+                            if (mode == AddStoreMode.SINGLE && storeName.isBlank()) {
+                                errorMessage = "Vui lòng nhập tên Store."
+                                return@Button
+                            }
+
                             isLoading = true
                             errorMessage = null
 
-                            if (jsonText.contains("\"stores\"") || jsonText.contains("\"version\"")) {
+                            if (mode == AddStoreMode.MULTIPLE) {
                                 viewModel.importCatalog(jsonText) { success, msg ->
                                     isLoading = false
                                     if (success) {
                                         successMessage = msg
-                                        step = 3
-                                    } else {
-                                        errorMessage = msg
-                                    }
-                                }
-                            } else if (jsonText.contains("service_account")) {
-                                viewModel.verifyAndAddStoreCredential(storeId, storeName, jsonText) { success, msg ->
-                                    isLoading = false
-                                    if (success) {
-                                        successMessage = msg
-                                        step = 3
+                                        step = 2
                                     } else {
                                         errorMessage = msg
                                     }
                                 }
                             } else {
-                                isLoading = false
-                                errorMessage = "Nội dung JSON không hợp lệ."
+                                // SINGLE mode
+                                if (jsonText.contains("service_account")) {
+                                    viewModel.verifyAndAddStoreCredential(storeId, storeName, jsonText) { success, msg ->
+                                        isLoading = false
+                                        if (success) {
+                                            successMessage = msg
+                                            step = 2
+                                        } else {
+                                            errorMessage = msg
+                                        }
+                                    }
+                                } else {
+                                    isLoading = false
+                                    errorMessage = "Nội dung không phải là file Service Account JSON hợp lệ."
+                                }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                
-        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(color = DarkBackground, modifier = Modifier.size(24.dp))
                         } else {
-                            Text("Xác thực & Lưu Store", color = DarkBackground, fontWeight = FontWeight.Bold)
+                            Text("Xác thực & Lưu", color = DarkBackground, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
 
-                3 -> {
+                2 -> {
                     // Success View
                     Column(
                         modifier = Modifier
@@ -248,8 +215,7 @@ fun AddStoreScreen(
                                 onSuccess()
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
-                    
-        shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(12.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
@@ -260,22 +226,5 @@ fun AddStoreScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun StepBadge(stepNumber: Int, label: String, active: Boolean) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            modifier = Modifier
-                .size(28.dp)
-                .clip(CircleShape)
-                .background(if (active) PrimaryBlue else CardSurfaceVariant),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(stepNumber.toString(), color = if (active) DarkBackground else TextSecondary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-        }
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(label, color = if (active) PrimaryBlue else TextSecondary, fontSize = 12.sp)
     }
 }

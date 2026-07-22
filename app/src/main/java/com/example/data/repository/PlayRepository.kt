@@ -501,9 +501,24 @@ class PlayRepository(
             if (store != null) {
                 storeDao.upsertStore(store.copy(lastSyncAt = System.currentTimeMillis(), connectionStatus = StoreConnectionStatus.CONNECTED.name))
             }
+            
+            val msg = "Đã đồng bộ $successCount/${apps.size} ứng dụng thành công."
+            alertDao.insertAlert(
+                GeneratedAlertEntity(
+                    id = "success_${System.currentTimeMillis()}",
+                    storeId = storeId,
+                    appId = null,
+                    title = "Đồng bộ hoàn tất",
+                    message = msg,
+                    type = AlertType.INFO.name,
+                    isRead = false,
+                    createdAt = System.currentTimeMillis(),
+                    isManual = false
+                )
+            )
 
             Log.d("REPO_SYNC", "Successfully synced $successCount/${apps.size} apps for $storeId")
-            Result.success("Đã đồng bộ $successCount/${apps.size} ứng dụng thành công.")
+            Result.success(msg)
         } catch (e: Exception) {
             Log.e("REPO_SYNC", "Overall sync error for $storeId: ${e.message}")
             val store = storeDao.getStoreById(storeId)
