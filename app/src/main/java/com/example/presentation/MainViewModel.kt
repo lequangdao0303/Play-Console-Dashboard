@@ -101,10 +101,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun importCatalog(rawJson: String) {
+    fun importCatalog(rawJson: String, onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
             val resultMsg = repository.importCatalogJson(rawJson)
-            _userMessage.value = resultMsg
+            if (resultMsg.startsWith("Lỗi") || resultMsg.startsWith("File JSON")) {
+                onResult(false, resultMsg)
+            } else {
+                onResult(true, resultMsg)
+            }
         }
     }
 

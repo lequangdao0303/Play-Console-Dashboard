@@ -187,7 +187,17 @@ fun AddStoreScreen(
                             isLoading = true
                             errorMessage = null
 
-                            if (jsonText.contains("service_account")) {
+                            if (jsonText.contains("\"stores\"") || jsonText.contains("\"version\"")) {
+                                viewModel.importCatalog(jsonText) { success, msg ->
+                                    isLoading = false
+                                    if (success) {
+                                        successMessage = msg
+                                        step = 3
+                                    } else {
+                                        errorMessage = msg
+                                    }
+                                }
+                            } else if (jsonText.contains("service_account")) {
                                 viewModel.verifyAndAddStoreCredential(storeId, storeName, jsonText) { success, msg ->
                                     isLoading = false
                                     if (success) {
@@ -198,11 +208,8 @@ fun AddStoreScreen(
                                     }
                                 }
                             } else {
-                                // Import Store Catalog
-                                viewModel.importCatalog(jsonText)
                                 isLoading = false
-                                successMessage = "Đã nhập Store Catalog thành công!"
-                                step = 3
+                                errorMessage = "Nội dung JSON không hợp lệ."
                             }
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryBlue),
