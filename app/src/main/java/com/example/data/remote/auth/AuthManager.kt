@@ -105,6 +105,8 @@ class AccessTokenManager(
             val token = json.getString("access_token")
             val expiresInSeconds = json.optLong("expires_in", 3600)
             val expiresAt = now + (expiresInSeconds * 1000)
+            
+            android.util.Log.d("API_CALL", "Successfully fetched OAuth token for store: $storeId. Expires in $expiresInSeconds seconds.")
 
             tokenCache[storeId] = CachedToken(token, expiresAt)
             token
