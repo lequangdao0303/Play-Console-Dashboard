@@ -76,8 +76,9 @@ fun StoreDetailScreen(
             titleContentColor = TextPrimary,
             confirmButton = {
                 TextButton(onClick = {
-                    if (packageName.isNotBlank()) {
-                        viewModel.addApp(storeId, packageName.trim(), displayName.trim().ifBlank { packageName.trim() })
+                    val pkg = packageName.trim()
+                    if (pkg.isNotBlank() && !pkg.contains(" ")) {
+                        viewModel.addApp(storeId, pkg, displayName.trim().ifBlank { pkg })
                         showAddAppDialog = false
                     }
                 }) {
