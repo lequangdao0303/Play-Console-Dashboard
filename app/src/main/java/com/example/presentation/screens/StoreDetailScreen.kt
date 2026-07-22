@@ -25,6 +25,8 @@ import com.example.presentation.MainViewModel
 import com.example.presentation.components.StatusBadge
 import com.example.presentation.components.StoreStatusPill
 import com.example.ui.theme.*
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -247,7 +249,16 @@ fun StoreDetailScreen(
                                         .background(PrimaryBlue.copy(alpha = 0.15f)),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(Icons.Default.PhoneAndroid, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(20.dp))
+                                    if (app.iconUrl != null) {
+                                        AsyncImage(
+                                            model = app.iconUrl,
+                                            contentDescription = "App Icon",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Icon(Icons.Default.PhoneAndroid, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(20.dp))
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Column(modifier = Modifier.weight(1f)) {

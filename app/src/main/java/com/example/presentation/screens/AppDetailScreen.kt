@@ -23,6 +23,10 @@ import com.example.domain.model.TrackRelease
 import com.example.presentation.MainViewModel
 import com.example.presentation.components.StatusBadge
 import com.example.ui.theme.*
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import com.example.utils.DateUtils
+import com.example.domain.model.AppItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,7 +56,6 @@ fun AppDetailScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = DarkBackground)
             )
         },
-        contentWindowInsets = WindowInsets(0.dp),
         containerColor = DarkBackground
     ) { innerPadding ->
         if (appDetailState == null) {
@@ -71,10 +74,9 @@ fun AppDetailScreen(
             ) {
                 // Header App Info
                 Card(
-            
-        shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = CardSurface),
+                    colors = CardDefaults.cardColors(containerColor = CardSurface),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
@@ -88,7 +90,16 @@ fun AppDetailScreen(
                                 .background(PrimaryBlue.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(Icons.Default.Smartphone, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(32.dp))
+                            if (app.iconUrl != null) {
+                                AsyncImage(
+                                    model = app.iconUrl,
+                                    contentDescription = "App Icon",
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Icon(Icons.Default.Smartphone, contentDescription = null, tint = PrimaryBlue, modifier = Modifier.size(32.dp))
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(10.dp))
@@ -119,7 +130,7 @@ fun AppDetailScreen(
                 // Tabs
                 TabRow(
                     selectedTabIndex = selectedTabIndex,
-        containerColor = DarkBackground,
+                    containerColor = DarkBackground,
                     contentColor = PrimaryBlue,
                     indicator = { tabPositions ->
                         TabRowDefaults.SecondaryIndicator(
@@ -138,34 +149,117 @@ fun AppDetailScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Group tracks
-                    val prodTracks = tracks.filter { it.trackName.contains("Production", true) }
-                    val testingTracks = tracks.filter { !it.trackName.contains("Production", true) }
-
-                    item {
-                        TrackHeaderSection(
-                            trackTitle = "Production",
-                            releases = if (prodTracks.isNotEmpty()) prodTracks else listOf(
-                                TrackRelease("", app.packageName, "Production", app.latestVersionCode ?: 120, app.latestVersionName ?: "2.1.0", "completed", 1.0f, System.currentTimeMillis() - 7200000, "Cải thiện hiệu suất ứng dụng\nSửa lỗi crash khi quay video")
-                            ),
-                            onReleaseClick = { rel -> onNavigateToReleaseDetail(app.packageName, rel.trackName, rel.versionCode) }
-                        )
+                    when (selectedTabIndex) {
+                        0 -> {
+                            item {
+                                OverviewTab(app = app, tracks = tracks)
+                            }
+                        }
+                        1 -> {
+                            val groupedTracks = tracks.groupBy { it.trackName }
+                            if (groupedTracks.isEmpty()) {
+                                item {
+                                    Text("Chưa có phiên bản nào được phát hành", color = TextSecondary, fontSize = 14.sp)
+                                }
+                            } else {
+                                groupedTracks.forEach { (trackName, trackReleases) ->
+                                    item {
+                                        TrackHeaderSection(
+                                            trackTitle = trackName,
+                                            releases = trackReleases,
+                                            onReleaseClick = { rel -> onNavigateToReleaseDetail(app.packageName, rel.trackName, rel.versionCode) }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                        2 -> {
+                            item {
+                                DetailTab(app = app)
+                            }
+                        }
                     }
-
-                    item {
-                        TrackHeaderSection(
-                            trackTitle = "Open Testing",
-                            releases = if (testingTracks.isNotEmpty()) testingTracks else listOf(
-                                TrackRelease("", app.packageName, "Open Testing", 121, "2.1.0-beta.1", "inProgress", 0.5f, System.currentTimeMillis() - 3600000, "Thử nghiệm tính năng mới")
-                            ),
-                            onReleaseClick = { rel -> onNavigateToReleaseDetail(app.packageName, rel.trackName, rel.versionCode) }
-                        )
-                    }
-
+                    
                     item { Spacer(modifier = Modifier.height(16.dp)) }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun OverviewTab(app: AppItem, tracks: List<TrackRelease>) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text("Tổng quan thống kê", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Trạng thái", color = TextSecondary, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(app.status.displayName, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Tổng số track", color = TextSecondary, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(tracks.distinctBy { it.trackName }.size.toString(), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    Text("Bản cập nhật mới nhất", color = TextSecondary, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(app.latestVersionName ?: "N/A", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text("Mã phiên bản", color = TextSecondary, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text((app.latestVersionCode ?: 0).toString(), color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailTab(app: AppItem) {
+    Card(
+        shape = RoundedCornerShape(14.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardSurface),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Text("Chi tiết ứng dụng", color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            DetailRowItem("Package Name", app.packageName)
+            Spacer(modifier = Modifier.height(12.dp))
+            DetailRowItem("Store quản lý", app.storeName ?: app.storeId)
+            Spacer(modifier = Modifier.height(12.dp))
+            DetailRowItem("Cập nhật lần cuối", DateUtils.formatDateTime(app.lastUpdatedTime))
+            
+            if (app.rejectedReason != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                DetailRowItem("Lý do từ chối", app.rejectedReason, isError = true)
+            }
+        }
+    }
+}
+
+@Composable
+fun DetailRowItem(label: String, value: String, isError: Boolean = false) {
+    Column {
+        Text(label, color = TextSecondary, fontSize = 12.sp)
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(value, color = if (isError) StatusRejected else TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
     }
 }
 
@@ -176,7 +270,6 @@ private fun TrackHeaderSection(
     onReleaseClick: (TrackRelease) -> Unit
 ) {
     Card(
-
         shape = RoundedCornerShape(14.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardSurface),
@@ -191,9 +284,7 @@ private fun TrackHeaderSection(
                 Text(trackTitle, color = TextPrimary, fontSize = 16.sp, fontWeight = FontWeight.Bold)
                 Text("Quản lý track", color = PrimaryBlue, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
             }
-
             Spacer(modifier = Modifier.height(12.dp))
-
             releases.forEach { release ->
                 ReleaseRowItem(release = release, onClick = { onReleaseClick(release) })
                 Spacer(modifier = Modifier.height(8.dp))
@@ -204,6 +295,20 @@ private fun TrackHeaderSection(
 
 @Composable
 private fun ReleaseRowItem(release: TrackRelease, onClick: () -> Unit) {
+    val statusColor = when (release.releaseStatus) {
+        "completed" -> StatusLive
+        "inProgress" -> PrimaryBlue
+        "halted" -> StatusRejected
+        else -> TextSecondary
+    }
+    
+    val statusIcon = when (release.releaseStatus) {
+        "completed" -> Icons.Default.CheckCircle
+        "inProgress" -> Icons.Default.Sync
+        "halted" -> Icons.Default.Warning
+        else -> Icons.Default.Info
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -214,19 +319,23 @@ private fun ReleaseRowItem(release: TrackRelease, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.Default.CheckCircle,
+            imageVector = statusIcon,
             contentDescription = null,
-            tint = StatusLive,
+            tint = statusColor,
             modifier = Modifier.size(20.dp)
         )
-
         Spacer(modifier = Modifier.width(10.dp))
-
         Column(modifier = Modifier.weight(1f)) {
             Text("${release.versionName} (${release.versionCode})", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Text("2 giờ trước", color = TextSecondary, fontSize = 11.sp)
+            Text(DateUtils.formatDateTime(release.updatedTime), color = TextSecondary, fontSize = 11.sp)
+            if (!release.releaseNotes.isNullOrEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(release.releaseNotes.take(50) + if (release.releaseNotes.length > 50) "..." else "", color = TextTertiary, fontSize = 11.sp, maxLines = 1)
+            }
         }
-
-        Text("${(release.userFraction * 100).toInt()}%", color = StatusLive, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Column(horizontalAlignment = Alignment.End) {
+            Text("${(release.userFraction * 100).toInt()}%", color = statusColor, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            Text(release.releaseStatus.replaceFirstChar { it.uppercase() }, color = statusColor, fontSize = 11.sp)
+        }
     }
 }

@@ -17,7 +17,7 @@ import com.example.data.local.entity.*
         GeneratedAlertEntity::class,
         ApiQuotaLogEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

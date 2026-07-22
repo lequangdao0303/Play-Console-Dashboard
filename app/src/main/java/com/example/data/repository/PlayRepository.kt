@@ -126,7 +126,8 @@ class PlayRepository(
                     userFraction = app.userFraction,
                     lastUpdatedTime = app.lastUpdatedTime,
                     hasManualRejectedAlert = rejectedAlert != null,
-                    rejectedReason = rejectedAlert?.message
+                    rejectedReason = rejectedAlert?.message,
+                    iconUrl = app.iconUrl
                 )
             }
         }
@@ -157,7 +158,8 @@ class PlayRepository(
                 userFraction = appEntity.userFraction,
                 lastUpdatedTime = appEntity.lastUpdatedTime,
                 hasManualRejectedAlert = rejectedAlert != null,
-                rejectedReason = rejectedAlert?.message
+                rejectedReason = rejectedAlert?.message,
+                iconUrl = appEntity.iconUrl
             )
 
             val trackList = releases.map { rel ->
@@ -313,7 +315,8 @@ class PlayRepository(
                         latestVersionName = "1.0.0",
                         latestVersionCode = 1,
                         userFraction = 1.0f,
-                        lastUpdatedTime = System.currentTimeMillis()
+                        lastUpdatedTime = System.currentTimeMillis(),
+                        iconUrl = null
                     )
                 }
                 if (appEntities.isNotEmpty()) {
@@ -343,7 +346,8 @@ class PlayRepository(
             latestVersionName = "1.0.0",
             latestVersionCode = 1,
             userFraction = 1.0f,
-            lastUpdatedTime = System.currentTimeMillis()
+            lastUpdatedTime = System.currentTimeMillis(),
+            iconUrl = null
         )
         appDao.upsertApp(appEntity)
     }
@@ -422,35 +426,50 @@ class PlayRepository(
             for (app in apps) {
                 try {
                     Log.d("REPO_SYNC", "Syncing app: ${app.packageName}")
-                    val tracks = apiService.fetchTracksWithEditLifecycle(token, app.packageName)
-                    if (tracks.isNotEmpty()) {
-                        val trackEntities = tracks.map { rel ->
-                            TrackReleaseEntity(
-                                id = "${rel.packageName}_${rel.trackName}_${rel.versionCode}",
-                                packageName = rel.packageName,
-                                trackName = rel.trackName,
-                                versionCode = rel.versionCode,
-                                versionName = rel.versionName,
-                                releaseStatus = rel.releaseStatus,
-                                userFraction = rel.userFraction,
-                                updatedTime = rel.updatedTime,
-                                releaseNotes = rel.releaseNotes
-                            )
-                        }
-                        trackReleaseDao.upsertReleases(trackEntities)
-
-                        val latest = tracks.maxByOrNull { it.versionCode }
-                        if (latest != null) {
+                    val editId = apiService.createEditSession(token, app.packageName)
+                    try {
+                        val tracks = apiService.listTracks(token, app.packageName, editId)
+                        val iconUrl = apiService.fetchAppIconUrl(token, app.packageName, editId)
+                        
+                        if (tracks.isNotEmpty()) {
+                            val trackEntities = tracks.map { rel ->
+                                TrackReleaseEntity(
+                                    id = "${rel.packageName}_${rel.trackName}_${rel.versionCode}",
+                                    packageName = rel.packageName,
+                                    trackName = rel.trackName,
+                                    versionCode = rel.versionCode,
+                                    versionName = rel.versionName,
+                                    releaseStatus = rel.releaseStatus,
+                                    userFraction = rel.userFraction,
+                                    updatedTime = rel.updatedTime,
+                                    releaseNotes = rel.releaseNotes
+                                )
+                            }
+                            trackReleaseDao.upsertReleases(trackEntities)
+    
+                            val latest = tracks.maxByOrNull { it.versionCode }
+                            if (latest != null) {
+                                appDao.upsertApp(
+                                    app.copy(
+                                        latestVersionName = latest.versionName,
+                                        latestVersionCode = latest.versionCode,
+                                        userFraction = latest.userFraction,
+                                        lastUpdatedTime = System.currentTimeMillis(),
+                                        iconUrl = iconUrl ?: app.iconUrl
+                                    )
+                                )
+                            }
+                            successCount++
+                        } else if (iconUrl != null) {
                             appDao.upsertApp(
                                 app.copy(
-                                    latestVersionName = latest.versionName,
-                                    latestVersionCode = latest.versionCode,
-                                    userFraction = latest.userFraction,
+                                    iconUrl = iconUrl,
                                     lastUpdatedTime = System.currentTimeMillis()
                                 )
                             )
                         }
-                        successCount++
+                    } finally {
+                        apiService.deleteEditSession(token, app.packageName, editId)
                     }
                 } catch (e: Exception) {
                     Log.w("REPO_SYNC", "Failed to sync app ${app.packageName}: ${e.message}")

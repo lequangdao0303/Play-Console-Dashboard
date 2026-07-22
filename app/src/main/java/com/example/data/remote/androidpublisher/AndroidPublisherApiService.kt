@@ -151,4 +151,53 @@ class AndroidPublisherApiService(
             }
         }
     }
+
+    /**
+     * Fetches the app icon URL from the Google Play Developer API
+     */
+    suspend fun fetchAppIconUrl(accessToken: String, packageName: String, editId: String): String? = withContext(Dispatchers.IO) {
+        val listingsUrl = "$baseUrl/$packageName/edits/$editId/listings"
+        var language = "en-US"
+        try {
+            val listReq = Request.Builder().url(listingsUrl).get().addHeader("Authorization", "Bearer $accessToken").build()
+            val listRes = httpClient.newCall(listReq).execute()
+            if (listRes.isSuccessful) {
+                val listBody = listRes.body?.string() ?: ""
+                val json = JSONObject(listBody)
+                val listingsArray = json.optJSONArray("listings")
+                if (listingsArray != null && listingsArray.length() > 0) {
+                    val firstListing = listingsArray.getJSONObject(0)
+                    language = firstListing.optString("language", "en-US")
+                }
+            }
+            listRes.close()
+        } catch (e: Exception) {
+            Log.e("API_CALL", "Error fetching listings to get language: ${e.message}")
+        }
+
+        val imagesUrl = "$baseUrl/$packageName/edits/$editId/listings/$language/icon"
+        val request = Request.Builder()
+            .url(imagesUrl)
+            .get()
+            .addHeader("Authorization", "Bearer $accessToken")
+            .build()
+        try {
+            val response = httpClient.newCall(request).execute()
+            val bodyStr = response.body?.string() ?: ""
+            if (response.isSuccessful) {
+                val json = JSONObject(bodyStr)
+                val imagesArray = json.optJSONArray("images")
+                if (imagesArray != null && imagesArray.length() > 0) {
+                    val firstImage = imagesArray.getJSONObject(0)
+                    return@withContext firstImage.optString("url", null)
+                }
+            } else {
+                Log.w("API_CALL", "Failed to fetch icon: ${response.code} $bodyStr")
+            }
+            response.close()
+        } catch (e: Exception) {
+            Log.e("API_CALL", "Exception fetching icon: ${e.message}")
+        }
+        null
+    }
 }

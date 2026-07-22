@@ -57,7 +57,8 @@ data class AppItem(
     val userFraction: Float = 1.0f,
     val lastUpdatedTime: Long = System.currentTimeMillis() - 7200000,
     val hasManualRejectedAlert: Boolean = false,
-    val rejectedReason: String? = null
+    val rejectedReason: String? = null,
+    val iconUrl: String? = null
 )
 
 data class TrackRelease(

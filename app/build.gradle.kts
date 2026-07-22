@@ -94,7 +94,7 @@ dependencies {
   implementation(libs.androidx.security.crypto)
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
-  // implementation(libs.coil.compose)
+  implementation(libs.coil.compose)
   implementation(libs.converter.moshi)
   implementation("com.google.code.gson:gson:2.10.1")
   implementation(libs.firebase.ai)

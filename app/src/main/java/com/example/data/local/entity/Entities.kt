@@ -27,7 +27,8 @@ data class AppEntity(
     val latestVersionName: String?,
     val latestVersionCode: Int?,
     val userFraction: Float,
-    val lastUpdatedTime: Long
+    val lastUpdatedTime: Long,
+    val iconUrl: String? = null
 )
 
 @Entity(tableName = "track_releases")
