@@ -230,7 +230,12 @@ class PlayRepository(
      * Flow of dashboard summary containing aggregated numbers and recent activities.
      */
     fun getDashboardSummaryFlow(): Flow<DashboardSummary> {
-        return combine(storeDao.getAllStoresFlow(), appDao.getAllAppsFlow(), alertDao.getAllAlertsFlow()) { stores, apps, alerts ->
+        return combine(
+            storeDao.getAllStoresFlow(),
+            appDao.getAllAppsFlow(),
+            alertDao.getAllAlertsFlow(),
+            trackReleaseDao.getAllReleasesFlow()
+        ) { stores, apps, alerts, trackReleases ->
             val manualRejectedAppIds = alerts.filter { it.isManual && it.type == AlertType.REJECTED.name && !it.isRead }.mapNotNull { it.appId }.toSet()
             
             val totalStores = stores.size
@@ -248,7 +253,7 @@ class PlayRepository(
             val closedApps = mappedApps.count { it.status == AppStatus.CLOSED.name }
             val rejectedApps = mappedApps.count { it.status == AppStatus.REJECTED.name }
 
-            val totalReleases = mappedApps.sumOf { it.latestVersionCode ?: 1 }
+            val totalReleases = trackReleases.size
             val unreadAlerts = alerts.count { !it.isRead }
 
             val recentActivities = mappedApps.sortedByDescending { it.lastUpdatedTime }.take(5).map { app ->
@@ -259,7 +264,8 @@ class PlayRepository(
                     packageName = app.packageName,
                     actionText = "Đồng bộ gần đây",
                     timestamp = app.lastUpdatedTime,
-                    status = status
+                    status = status,
+                    iconUrl = app.iconUrl
                 )
             }
 

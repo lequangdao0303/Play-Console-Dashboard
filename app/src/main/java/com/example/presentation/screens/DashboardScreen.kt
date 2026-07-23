@@ -26,6 +26,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
 import com.example.domain.model.AppStatus
 import com.example.domain.model.DashboardSummary
 import com.example.domain.model.RecentActivity
@@ -426,12 +428,21 @@ private fun RecentActivityCard(activity: RecentActivity, onClick: () -> Unit) {
                     .background(PrimaryBlue.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.CloudUpload,
-                    contentDescription = null,
-                    tint = PrimaryBlue,
-                    modifier = Modifier.size(20.dp)
-                )
+                if (activity.iconUrl != null) {
+                    AsyncImage(
+                        model = activity.iconUrl,
+                        contentDescription = "App Icon",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.CloudUpload,
+                        contentDescription = null,
+                        tint = PrimaryBlue,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -449,7 +460,7 @@ private fun RecentActivityCard(activity: RecentActivity, onClick: () -> Unit) {
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "2 phút trước",
+                text = com.example.utils.DateUtils.getRelativeTime(activity.timestamp),
                 color = TextTertiary,
                 fontSize = 11.sp
             )

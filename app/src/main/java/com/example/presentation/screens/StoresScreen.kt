@@ -180,7 +180,7 @@ fun StoreItemCard(store: Store, onClick: () -> Unit) {
                         fontSize = 12.sp
                     )
                     Text(
-                        text = "Đồng bộ: 2 phút trước",
+                        text = "Đồng bộ: ${store.lastSyncAt?.let { com.example.utils.DateUtils.getRelativeTime(it) } ?: "Chưa đồng bộ"}",
                         color = TextTertiary,
                         fontSize = 11.sp
                     )

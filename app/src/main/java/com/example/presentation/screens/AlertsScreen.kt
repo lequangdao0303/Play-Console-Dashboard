@@ -170,7 +170,7 @@ private fun AlertCardItem(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(alert.message, color = TextSecondary, fontSize = 12.sp)
                 Spacer(modifier = Modifier.height(6.dp))
-                Text("2 phút trước", color = TextTertiary, fontSize = 11.sp)
+                Text(com.example.utils.DateUtils.getRelativeTime(alert.createdAt), color = TextTertiary, fontSize = 11.sp)
             }
         }
     }

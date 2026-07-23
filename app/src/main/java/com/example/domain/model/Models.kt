@@ -117,7 +117,8 @@ data class RecentActivity(
     val packageName: String,
     val actionText: String,
     val timestamp: Long,
-    val status: AppStatus
+    val status: AppStatus,
+    val iconUrl: String? = null
 )
 
 
